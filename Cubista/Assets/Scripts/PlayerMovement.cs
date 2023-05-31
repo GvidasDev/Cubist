@@ -7,17 +7,20 @@ using UnityEngine.UI;
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] float moveSpeed = 10f;
-    [SerializeField] int points;
+    [SerializeField] LayerMask wallMask;
 
-    bool isDead = false;
-    [SerializeField] Text scoreText;
+    [SerializeField] GameObject explosionParticle;
+
+    bool isDead;
+    public bool IsDead {get{return isDead;}}
+
+    Vector3 startPosition = new Vector3(0, 0.8f, -5);
 
     // Start is called before the first frame update
     void Start()
     {
-        points = 0;
-        scoreText.text = points.ToString();
-        AliveSettings(true, true, false);
+        LifeSettings(true, true, false);
+        transform.position = startPosition;
     }
 
     // Update is called once per frame
@@ -27,7 +30,20 @@ public class PlayerMovement : MonoBehaviour
         if(!isDead){
             MovePlayer();
         }
+
+        DetectWalls();
     }
+
+    void DetectWalls(){
+        Vector3 size = new Vector3(0.3f, 0.3f, 0.3f);
+        Vector3 directionToCheck = new Vector3(0, 0, transform.localScale.z);
+        if (Physics.BoxCast(transform.position, size, directionToCheck, transform.rotation, 0.1f, wallMask))
+        {
+            if(!isDead)
+                Kill();
+            Invoke("ReloadScene", 1f);
+        }
+    } 
 
     void MovePlayer(){
         Vector3 pos = transform.position;
@@ -36,35 +52,29 @@ public class PlayerMovement : MonoBehaviour
         pos.x = Mathf.Clamp(transform.position.x, -2.2f, 2.2f);
         transform.position = pos;
     }
-    private void OnCollisionEnter(Collision other) {
-        if(other.gameObject.tag == "Enemy"){
-            Debug.Log($"{other.gameObject.name}");
-            AliveSettings(false, false, true);
-            Invoke("ReloadScene", 1f);
-        }
+
+    void Kill(){
+        LifeSettings(false, false, true);
+        Instantiate(explosionParticle, gameObject.transform.position, Quaternion.identity);
     }
 
-    private void OnTriggerEnter(Collider other) {
-        if(other.gameObject.tag == "Coin"){
-            Destroy(other.gameObject);
-            points++;
-            scoreText.text = points.ToString();
-        }
-    }
-
-    void AliveSettings(bool a, bool b, bool c){
-        GetComponent<MeshRenderer>().enabled = a;
-        GetComponent<Collider>().enabled = b;
+    void LifeSettings(bool a, bool b, bool c){
         isDead = c;
+        GetComponentInChildren<MeshRenderer>().enabled = a;
+        GetComponentInChildren<Collider>().enabled = b;
     }
 
     void Keys(){
         if(Input.GetKeyDown(KeyCode.R)){
             ReloadScene();
         }
+        else if(Input.GetKeyDown(KeyCode.Equals)){
+           Application.Quit();
+        }
     }
     void ReloadScene(){
-            string currentScene = SceneManager.GetActiveScene().name; 
-            SceneManager.LoadScene(currentScene);
+        string currentScene = SceneManager.GetActiveScene().name; 
+        SceneManager.LoadScene(currentScene);
+
     }
 }

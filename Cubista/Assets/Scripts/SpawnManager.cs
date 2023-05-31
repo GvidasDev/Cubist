@@ -10,6 +10,7 @@ public class SpawnManager : MonoBehaviour
 
     [SerializeField] float timeToSpawn = 1f;
 
+
     // Start is called before the first frame update
     void Start()
     {
