@@ -9,12 +9,18 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float moveSpeed = 10f;
     [SerializeField] LayerMask wallMask;
 
+    [SerializeField] GameObject destroyParticles;
     [SerializeField] GameObject explosionParticle;
 
     bool isDead;
     public bool IsDead {get{return isDead;}}
-
     Vector3 startPosition = new Vector3(0, 0.8f, -5);
+
+    Score score;
+
+    void Awake() {
+        score = GetComponent<Score>();
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -31,19 +37,31 @@ public class PlayerMovement : MonoBehaviour
             MovePlayer();
         }
 
-        DetectWalls();
+        DetectCollisions();
     }
 
-    void DetectWalls(){
+    void DetectCollisions(){
         Vector3 size = new Vector3(0.3f, 0.3f, 0.3f);
         Vector3 directionToCheck = new Vector3(0, 0, transform.localScale.z);
-        if (Physics.BoxCast(transform.position, size, directionToCheck, transform.rotation, 0.1f, wallMask))
+        RaycastHit hit;
+        if (Physics.BoxCast(transform.position, size, directionToCheck, out hit, transform.rotation, 0.1f, wallMask))
         {
-            if(!isDead)
-                Kill();
-            Invoke("ReloadScene", 1f);
+            if(hit.collider.gameObject.CompareTag("Coin")){
+                CoinCollision(hit);
+            }else{
+                if(!isDead)
+                    Kill();
+                Invoke("ReloadScene", 1f);
+            }
         }
     } 
+
+    void CoinCollision(RaycastHit hit){
+        Destroy(hit.collider.gameObject);
+        GameObject a = Instantiate(destroyParticles, hit.collider.gameObject.transform.position, Quaternion.identity);
+        Destroy(a, 0.5f);
+        score.UpdateScore();
+    }
 
     void MovePlayer(){
         Vector3 pos = transform.position;
@@ -75,6 +93,5 @@ public class PlayerMovement : MonoBehaviour
     void ReloadScene(){
         string currentScene = SceneManager.GetActiveScene().name; 
         SceneManager.LoadScene(currentScene);
-
     }
 }

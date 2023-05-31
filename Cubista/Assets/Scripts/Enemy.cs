@@ -5,8 +5,7 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     [SerializeField] float startSpeed = 10f;
-    [SerializeField] float maxSpeed = 25f;
-    [SerializeField] float moveSpeed;
+    [SerializeField] float moveSpeed = 10f;
 
     PlayerMovement playerMover;
     Player player;
@@ -25,15 +24,11 @@ public class Enemy : MonoBehaviour
     {
         Move();
         DestroyEnemy();
-        
-        SpeedControl(3);
-
-        Debug.Log("Move speed " + moveSpeed);
     }
 
     void Move(){
         if(playerMover.IsDead){
-            SetSpeed(0);
+            moveSpeed = 0;
         }
 
         transform.Translate(0, 0, -moveSpeed * Time.deltaTime);
@@ -42,15 +37,5 @@ public class Enemy : MonoBehaviour
         if(transform.position.z < -10){
             Destroy(gameObject);
         }
-    }
-
-    void SetSpeed(float speed){
-        if(speed <= maxSpeed){
-            moveSpeed = speed;
-        }
-    }
-
-    void SpeedControl(float speedIncrease){
-        //TODO: didinti greiti pagal laika arba rezultata
     }
 }
